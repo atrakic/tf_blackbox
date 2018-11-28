@@ -40,7 +40,7 @@ init: install ## Initilise empty terraform env
 
 .PHONY: validate
 validate: ## Validates the Terraform files
-	@$(TERRAFORM) validate
+	@$(TERRAFORM) validate -check-variables=false .
 
 .PHONY: show
 show: apply ## Inspect Terraform state or plan
