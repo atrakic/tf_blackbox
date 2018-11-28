@@ -7,7 +7,7 @@ variable "endpoints" {
   ]
 }
 data "template_file" "data_json" {
-  template = "${file("${path.module}/templates/data.json.tmpl")}"
+  template = "${file("../templates/data.json.tmpl")}"
   count    = "${length(var.endpoints)}"
   vars {
     endpoint = "${element(values(var.endpoints[count.index]), 0)}"
@@ -28,7 +28,7 @@ variable "links" {
 }
 
 data "template_file" "service_json" {
- template = "${file("${path.module}/templates/service.json.tmpl")}"
+ template = "${file("../templates/service.json.tmpl")}"
  vars {
   value = "${join(",", data.template_file.data_json.*.rendered)}"
   links = "${jsonencode(var.links)}"
