@@ -1,8 +1,5 @@
-# test_join_key_vals.tf
-
 variable "a" {
   type = "map"
-
   default = {
     "k1" = "v1"
     "k2" = "v2"
