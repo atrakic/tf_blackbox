@@ -1,12 +1,7 @@
-all: validate 
-	@./run.sh
+SHELL := /bin/bash
 
-apply:
-	terraform apply -input=false -no-color
+.PHONY: help
+help:
+	@echo -e "$$(grep -hE '^\S+:.*##' $(MAKEFILE_LIST) | sed -e 's/:.*##\s*/:/' -e 's/^\(.\+\):\(.*\)/\\x1b[36m\1\\x1b[m:\2/' | column -c2 -t -s :)"
 
-fmt:
-	terraform fmt *.tf
-
-validate:
-	terraform validate -check-variables=false .
-
+include $(shell git rev-parse --show-toplevel)/terraform-common.mk
