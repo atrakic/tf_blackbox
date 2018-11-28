@@ -1,0 +1,17 @@
+[
+    {
+        "name": "endpoint1",
+          "endpoint": "https://endpoint-1.example.com"
+    }
+    ,{
+        "name": "endpoint2",
+          "endpoint": "https://endpoint-2.example.com"
+    }
+    ,{
+        "name": "endpoint3",
+          "endpoint": "https://endpoint-3.example.com"
+    }
+    ,
+        {"links": ["link1","link2","link3"]}
+]
+
