@@ -10,8 +10,6 @@ variable "matrix" {
 data "null_data_source" "values" {
   count = "${length(split(",",var.matrix["chars"]))}"
   inputs = {
-    //foo = "foo"
-    //bar = "bar"
     chars        = "${element(split(",", var.matrix["chars"]), count.index)}"
     tld          = "${element(split(",", var.matrix["tld"]), count.index)}"
     numbers      = "${element(split(",", var.matrix["numbers"]), count.index)}"
