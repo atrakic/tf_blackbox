@@ -1,5 +1,5 @@
 # tf_blackbox
-A simple testing framework for terraform code.
+Various test cases for terraform code, mostly function calls and interpolations.
 
 # Requirements
 make
