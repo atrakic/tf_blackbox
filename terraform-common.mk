@@ -26,6 +26,18 @@ apply: init ## Builds or changes infrastructure
 graph: apply ## Create a visual graph of Terraform resources
 	@$(TERRAFORM) graph
 
+.PHONY: state-pull
+state-pull: apply ## Pull the state from its location and output it to stdout
+	@$(TERRAFORM) state pull
+
+.PHONY: state-list
+state-list: apply ## List resources in the Terraform state
+	@$(TERRAFORM) state list
+
+.PHONY: state-show
+state-show: apply ## Shows the attributes of a resource in the Terraform state
+	@$(TERRAFORM) state show
+
 .PHONY: output
 output: apply ## Read an output from a state file
 	@$(TERRAFORM) output
