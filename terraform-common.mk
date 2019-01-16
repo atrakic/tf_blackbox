@@ -15,8 +15,6 @@ install: ## Install terraform
 		mv $(TMP)/terraform $(TERRAFORM) && \
 		rm -f $(TMP)/terraform.zip \
 		)
-	which $(TERRAFORM)
-	$(TERRAFORM) version
 
 .PHONY: apply
 apply: init ## Builds or changes infrastructure
@@ -27,15 +25,15 @@ graph: apply ## Create a visual graph of Terraform resources
 	@$(TERRAFORM) graph
 
 .PHONY: state-pull
-state-pull: apply ## Pull the state from its location and output it to stdout
+state-pull: ## Pull the state from its location and output it to stdout
 	@$(TERRAFORM) state pull
 
 .PHONY: state-list
-state-list: apply ## List resources in the Terraform state
+state-list: ## List resources in the Terraform state
 	@$(TERRAFORM) state list
 
 .PHONY: state-show
-state-show: apply ## Shows the attributes of a resource in the Terraform state
+state-show: ## Shows the attributes of a resource in the Terraform state
 	@$(TERRAFORM) state show
 
 .PHONY: output
