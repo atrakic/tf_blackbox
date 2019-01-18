@@ -48,7 +48,7 @@ version: ## Prints the Terraform version
 .PHONY: validate
 validate: ## Validates the Terraform files
 	@docker run -it --rm -w $$PWD -v $$PWD:$$PWD $(DOCKER_IMAGE) \
-		validate -check-variables=false .
+		validate -check-variables=false . && echo "[OK] terraform validated"
 
 .PHONY: show
 show: apply ## Inspect Terraform state or plan
