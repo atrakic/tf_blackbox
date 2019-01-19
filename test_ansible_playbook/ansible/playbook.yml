@@ -1,0 +1,14 @@
+---
+
+- name: Example ansible provisioning from terraform
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    msg: "{{msg}}"
+    myfile: "{{myfile}}"
+
+  tasks:
+  - name: ensure ansible
+    shell: |
+      echo {{msg}} > {{myfile}}
