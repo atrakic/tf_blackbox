@@ -49,7 +49,7 @@ init: install ## Initilise empty terraform env
 	@$(TERRAFORM) init -input=false >/dev/null
 
 .PHONY: validate
-validate: ## Validates the Terraform files
+validate: init ## Validates the Terraform files
 	@$(TERRAFORM) validate -check-variables=false .
 
 .PHONY: show
@@ -60,6 +60,6 @@ show: apply ## Inspect Terraform state or plan
 fmt: ## Rewrites config files to canonical format
 	@$(TERRAFORM) fmt
 
-.PHONY: clean
-clean: ## Clean up
-	@rm -rf *.tfstate *.tfstate.backup $(TERRAFORM) .terraform/* >/dev/null
+.PHONY: destroy
+destroy: ## Destroy Terraform-managed infrastructure
+	@$(TERRAFORM) destroy -auto-approve
