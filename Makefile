@@ -4,4 +4,23 @@ SHELL := /bin/bash
 help:
 	@echo -e "$$(grep -hE '^\S+:.*##' $(MAKEFILE_LIST) | sed -e 's/:.*##\s*/:/' -e 's/^\(.\+\):\(.*\)/\\x1b[36m\1\\x1b[m:\2/' | column -c2 -t -s :)"
 
-include $(shell git rev-parse --show-toplevel)/terraform-common.mk
+INTERACTIVE := $(shell [ -t 0 ] && echo 1 || echo 0)
+ifeq ($(INTERACTIVE), 1)
+        DOCKER_FLAGS += -t
+endif
+
+#HAVE_ANSIBLE := $(shell which ansible &>/dev/null && echo 1 || echo 0)
+#ifeq ($(HAVE_ANSIBLE), 1)
+#        ENV += -v $(shell which ansible):/usr/bin/ansible
+#endif
+
+#HAVE_ANSIBLE_PLAYBOOK := $(shell which ansible-playbook &>/dev/null && echo 1 || echo 0)
+#ifeq ($(HAVE_ANSIBLE_PLAYBOOK), 1)
+#        ENV += -v $(shell which ansible-playbook):/usr/bin/ansible-playbook
+#endif
+
+include $(shell git rev-parse --show-toplevel)/terraform-common-docker.mk
+
+.PHONY: clean
+clean: ## Cleanup working directory from states and plugins
+	@rm -rf .terraform  terraform.tfstate terraform.tfstate.backup
