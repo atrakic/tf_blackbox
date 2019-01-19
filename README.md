@@ -1,5 +1,5 @@
 # tf_blackbox
-Various test cases for terraform code, mostly function calls and interpolations.
+My humble collection of terraform code snippets.
 
 # Requirements
-make
+make,docker,ansible-playbook,jq
