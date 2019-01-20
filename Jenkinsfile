@@ -5,21 +5,23 @@ pipeline {
       parallel {
         stage('pull latest terraform') {
           steps {
+            sh 'printenv'
             sh 'docker pull ${DOCKER_IMAGE}'
           }
         }
         stage('version') {
           steps {
             sh 'docker run -i --rm ${DOCKER_IMAGE} version'
-            sh 'printenv'
           }
         }
-        stage('init') {
+        stage('validate') {
           steps {
             dir(path: "${MODULE_DIR}") {
               sh """
-                                  ${TERRAFORM_CMD} validate -no-color -check-variables=false . 
-                                  ${TERRAFORM_CMD} init -no-color -backend=true -input=false
+                ${TERRAFORM_CMD} validate -no-color -check-variables=false .
+                ${TERRAFORM_CMD} init -no-color -backend=true -input=false
+                ${TERRAFORM_CMD} get
+               
                                   """
             }
 
