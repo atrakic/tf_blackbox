@@ -1,11 +1,5 @@
 pipeline {
-  agent {
-    docker {
-      image 'hashicorp/terraform'
-      args '-v ${PWD}:/app -w /app -it --entrypoint=/bin/sh'
-    }
-
-  }
+  agent any
   stages {
     stage('pull latest terraform') {
       parallel {
