@@ -10,7 +10,7 @@ pipeline {
         }
         stage('version') {
           steps {
-            sh 'docker run -it --rm ${DOCKER_IMAGE} version'
+            sh 'docker run -i --rm ${DOCKER_IMAGE} version'
           }
         }
       }
