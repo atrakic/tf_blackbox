@@ -8,12 +8,18 @@ pipeline {
   }
   stages {
     stage('pull latest terraform') {
-      steps {
-        sh 'docker pull hashicorp/terraform'
+      parallel {
+        stage('pull latest terraform') {
+          steps {
+            sh 'docker pull hashicorp/terraform'
+          }
+        }
+        stage('version') {
+          steps {
+            sh 'version'
+          }
+        }
       }
     }
-  }
-  environment {
-    CI = 'true'
   }
 }
