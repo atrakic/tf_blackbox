@@ -6,21 +6,13 @@ help:
 
 INTERACTIVE := $(shell [ -t 0 ] && echo 1 || echo 0)
 ifeq ($(INTERACTIVE), 1)
-        DOCKER_FLAGS += -t
+	DOCKER_FLAGS += -t
+	TF_FLAGS = "-no-color"
+	include $(shell git rev-parse --show-toplevel)/terraform-common-docker.mk
+else
+	include $(shell git rev-parse --show-toplevel)/terraform-common.mk
 endif
-
-#HAVE_ANSIBLE := $(shell which ansible &>/dev/null && echo 1 || echo 0)
-#ifeq ($(HAVE_ANSIBLE), 1)
-#        ENV += -v $(shell which ansible):/usr/bin/ansible
-#endif
-
-#HAVE_ANSIBLE_PLAYBOOK := $(shell which ansible-playbook &>/dev/null && echo 1 || echo 0)
-#ifeq ($(HAVE_ANSIBLE_PLAYBOOK), 1)
-#        ENV += -v $(shell which ansible-playbook):/usr/bin/ansible-playbook
-#endif
-
-include $(shell git rev-parse --show-toplevel)/terraform-common-docker.mk
 
 .PHONY: clean
 clean: ## Cleanup working directory from states and plugins
-	@rm -rf .terraform  terraform.tfstate terraform.tfstate.backup
+	@rm -rf .terraform terraform.tfstate terraform.tfstate.backup
