@@ -18,5 +18,6 @@ pipeline {
   }
   environment {
     DOCKER_IMAGE = 'hashicorp/terraform:light'
+    MODULE_DIR = 'test_uuid'
   }
 }
