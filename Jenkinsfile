@@ -18,15 +18,20 @@ pipeline {
           steps {
             dir(path: "${MODULE_DIR}") {
               sh """
-                ${TERRAFORM_CMD} validate -no-color -check-variables=false .
-                ${TERRAFORM_CMD} init -no-color -backend=true -input=false
-                ${TERRAFORM_CMD} get
-               
-                                  """
+                              ${TERRAFORM_CMD} validate -no-color -check-variables=false .
+                              ${TERRAFORM_CMD} init -no-color -backend=true -input=false
+                              ${TERRAFORM_CMD} get
+                             
+                                                """
             }
 
           }
         }
+      }
+    }
+    stage('plan') {
+      steps {
+        sh '${TERRAFORM_CMD} plan'
       }
     }
   }
