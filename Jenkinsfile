@@ -11,19 +11,20 @@ pipeline {
         stage('version') {
           steps {
             sh 'docker run -i --rm ${DOCKER_IMAGE} version'
+            sh 'printenv'
           }
         }
         stage('init') {
-            steps {
-                dir("${MODULE_DIR}"){
-                sh  """
-                    ${TERRAFORM_CMD} validate -no-color -check-variables=false . 
-                    ${TERRAFORM_CMD} init -no-color -backend=true -input=false
-                    """
-                }
+          steps {
+            dir(path: "${MODULE_DIR}") {
+              sh """
+                                  ${TERRAFORM_CMD} validate -no-color -check-variables=false . 
+                                  ${TERRAFORM_CMD} init -no-color -backend=true -input=false
+                                  """
             }
-        }
 
+          }
+        }
       }
     }
   }
