@@ -10,32 +10,33 @@ pipeline {
             steps {
               git branch: 'master', url: "${GIT_REPO}"
               sh  """
-                    ${TERRAFORM_CMD} version
-                    """
+                  ${TERRAFORM_CMD} version
+                  """
             }
         }
         stage('init') {
             steps {
                 dir("${MODULE_DIR}"){
                 sh  """
-                    ${TERRAFORM_CMD} validate -no-color -check-variables=false . 
+                    ${TERRAFORM_CMD} validate -no-color -check-variables=false .
                     ${TERRAFORM_CMD} init -no-color -backend=true -input=false
                     """
                 }
             }
+        }
         stage('plan') {
             steps {
                 dir("${MODULE_DIR}"){
                 sh  """
-                    ${TERRAFORM_CMD} plan -no-color -out=tfplan.${BUILD_ID} -input=false 
+                    ${TERRAFORM_CMD} plan -no-color -out=tfplan.${BUILD_ID} -input=false
                     """
                 script {
                   timeout(time: 10, unit: 'MINUTES') {
-                    input(id: "Apply further", message: "Deploy ${params.project_name}?", ok: 'Deploy')
+                  input(id: "Apply further", message: "Deploy ${params.project_name}?", ok: 'Deploy')
                   }
                 }
             }
-          } 
+          }
         }
         stage('apply') {
             dir("${MODULE_DIR}"){
@@ -46,6 +47,5 @@ pipeline {
             }
           }
         }
-      }
     }
 }
