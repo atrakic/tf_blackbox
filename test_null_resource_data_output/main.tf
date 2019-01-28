@@ -1,29 +1,30 @@
 variable "matrix" {
   type = "map"
   default = {
-    chars   = "a,b,c"
-    numbers = "1,2,3"
+    char   = "a,b,c"
+    number = "1,2,3"
     tld     = "com,net,org"
   }
 }
 
 data "null_data_source" "values" {
-  count = "${length(split(",",var.matrix["chars"]))}"
+  count = "${length(split(",",var.matrix["char"]))}"
   inputs = {
-    chars        = "${element(split(",", var.matrix["chars"]), count.index)}"
-    tld          = "${element(split(",", var.matrix["tld"]), count.index)}"
-    numbers      = "${element(split(",", var.matrix["numbers"]), count.index)}"
+    chars       = "${element(split(",", var.matrix["char"]), count.index)}"
+    numbers     = "${element(split(",", var.matrix["number"]), count.index)}"
+    tlds        = "${element(split(",", var.matrix["tld"]), count.index)}"
   }
 }
 
-output "test_0" {
-  value = "${data.null_data_source.values.*.outputs[0]}"
+output "chars" {
+  value = "${data.null_data_source.values.*.outputs.chars}"
 }
 
-output "test_1" {
-  value = "${data.null_data_source.values.*.outputs[1]}"
+output "numbers" {
+  value = "${data.null_data_source.values.*.outputs.numbers}"
 }
 
-output "test_2" {
-  value = "${data.null_data_source.values.*.outputs[2]}"
+output "tlds" {
+  value = "${data.null_data_source.values.*.outputs.tlds}"
 }
+
