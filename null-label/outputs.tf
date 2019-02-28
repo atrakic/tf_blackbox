@@ -52,3 +52,8 @@ output "label_order" {
   value       = "${local.label_order_final_list}"
   description = "The naming order of the id output and Name tag"
 }
+
+
+output "generated_tags" {
+  value       = "${local.generated_tags}"
+}
