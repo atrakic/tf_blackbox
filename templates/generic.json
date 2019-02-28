@@ -1,1 +1,3 @@
-{ "${element1}" : "${id}", "${element2}" : "${image}" }
+{ "${element}": "${id}",
+  "image": "${image}"
+}

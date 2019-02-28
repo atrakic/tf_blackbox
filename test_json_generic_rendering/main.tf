@@ -1,6 +1,6 @@
 variable "accounts" {
   type    = "list"
-  default = ["1111", "2222"]
+  default = ["1111", "2222", "3333" ]
 }
 
 variable "images" {
@@ -9,13 +9,13 @@ variable "images" {
 }
 
 data "template_file" "generic" {
-  count = "${length(var.accounts) * length(var.images)}"
+  count    = "${length(var.accounts) * length(var.images)}"
 
   template = "${file("../templates/generic.json")}"
 
   vars {
-    element1 = "foo${count.index}"
-    element2 = "bar${count.index}"
+    #element  = "${element(var.images, count.index)}"
+    element   = "${format("%03d", count.index +1)}"
 
     id    = "${var.accounts[count.index / length(var.images)]}"
     image = "${var.images[count.index % length(var.images)]}"
@@ -32,10 +32,11 @@ resource "null_resource" "render" {
 }
 
 output "test_json_rendering" {
-  value = "${null_resource.render.*.triggers.images}"
+  description = "Generates a json blocks from the list"
+  value       = "${null_resource.render.*.triggers.images}"
 }
 
-#output "test_ids" {
-#  value = "${null_resource.render.*.triggers.ids}"
-#}
-
+output "test_element" {
+  description = "Subselect element from rendered list"
+  value       = "${element(null_resource.render.*.triggers.images, 0)}"
+}
