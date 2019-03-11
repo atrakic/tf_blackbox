@@ -16,6 +16,10 @@ install: ## Install terraform
 		rm -f $(TMP)/terraform.zip \
 		)
 
+.PHONY: plan
+plan: init ## Generate and show an execution plan
+	@$(TERRAFORM) plan -auto-approve
+
 .PHONY: apply
 apply: init ## Builds or changes infrastructure
 	@$(TERRAFORM) apply -auto-approve
