@@ -10,7 +10,7 @@ resource "null_resource" "test_element" {
   count = "${local.foo}"
 
   triggers {
-    out = "${element(var.element, count.index)}"
+    out = "${element(var.list, count.index)}"
   }
 }
 
