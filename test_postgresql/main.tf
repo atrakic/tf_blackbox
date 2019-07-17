@@ -1,7 +1,16 @@
 terraform {
   required_version = ">= 0.11.11"
+  backend          "local"          {}
+}
 
-  #backend "local" {}
+locals {
+  docker_pg_host            = "0.0.0.0"
+  docker_pg_port            = "5432"
+  docker_pg_database        = "postgres"
+  docker_pg_username        = "admin"
+  docker_pg_password        = "admin123456"
+  docker_pg_ssl_mode        = "disable"
+  docker_pg_connect_timeout = "15"
 }
 
 provider "postgresql" {
@@ -14,16 +23,6 @@ provider "postgresql" {
   connect_timeout = "${local.docker_pg_connect_timeout}"
 
   #alias          = "dockerdb"
-}
-
-locals {
-  docker_pg_host            = "0.0.0.0"
-  docker_pg_port            = "5432"
-  docker_pg_database        = "postgres"
-  docker_pg_username        = "admin"
-  docker_pg_password        = "admin123456"
-  docker_pg_ssl_mode        = "disable"
-  docker_pg_connect_timeout = "15"
 }
 
 locals {
@@ -57,17 +56,22 @@ locals {
   }
 }
 
+resource "postgresql_role" "guest" {
+  name     = "${local.guestdb-commons["role"]}"
+  login    = true
+  password = "${local.guestdb-commons["pass"]}"
+}
+
 resource "postgresql_schema" "guest" {
   name = "${local.guestdb-commons["schema"]}"
 
-  #provider = "postgresql.${local.guestdb-commons["db"]}"
-}
+  #owner     = "postgres"
 
-resource "postgresql_role" "guest" {
-  name            = "${local.guestdb-commons["role"]}"
-  create_database = true
-  login           = true
-  password        = "${local.guestdb-commons["pass"]}"
+  policy {
+    create = true
+    usage  = true
+    role   = "${postgresql_role.guest.name}"
+  }
 }
 
 resource "postgresql_database" "guest" {
@@ -92,7 +96,7 @@ provider "postgresql" {
 
 ####
 
-resource "postgresql_role" "role" {
+resource "postgresql_role" "app_role" {
   count                     = "${local.role_count}"
   name                      = "${element(concat(null_resource.let.*.triggers.db_admins, null_resource.let.*.triggers.db_readers, null_resource.let.*.triggers.db_writters), count.index)}"
   superuser                 = false
@@ -107,18 +111,20 @@ resource "postgresql_role" "role" {
   password                  = "${element(random_id.pg_password.*.b64, count.index)}"
   skip_drop_role            = false
   skip_reassign_owned       = false
-  valid_until               = "infinity"
 }
 
 resource "postgresql_grant" "ro" {
-  count       = "${length(null_resource.let.*.triggers.db_readers)}"
-  database    = "${local.guestdb-commons["db"]}"
-  role        = "${element(null_resource.let.*.triggers.db_readers, count.index)}"
-  schema      = "public"
+  count    = "${length(null_resource.let.*.triggers.db_readers)}"
+  database = "${local.guestdb-commons["db"]}"
+  role     = "${element(null_resource.let.*.triggers.db_readers, count.index)}"
+  schema   = "public"
   object_type = "table"
   privileges  = ["SELECT"]
 
-  depends_on = ["postgresql_role.role"]
+  depends_on = [
+    "postgresql_schema.guest",
+    "postgresql_role.app_role",
+  ]
 }
 
 output "superuser_login" {
@@ -126,9 +132,9 @@ output "superuser_login" {
               local.docker_pg_port, local.docker_pg_host, local.docker_pg_database, local.docker_pg_username, local.docker_pg_password)}"
 }
 
-output "db_logins" {
-  value = "${zipmap(postgresql_role.role.*.id,
+output "app_logins" {
+  value = "${zipmap(postgresql_role.app_role.*.id,
               formatlist("PGPORT=%s PGHOST=%s PGDATABASE=%s PGUSER=%s PGPASSWORD=%s psql",
-              local.docker_pg_port, local.docker_pg_host, local.guestdb-commons["db"], postgresql_role.role.*.id, postgresql_role.role.*.password)
+              local.docker_pg_port, local.docker_pg_host, local.guestdb-commons["db"], postgresql_role.app_role.*.id, postgresql_role.app_role.*.password)
   )}"
 }
