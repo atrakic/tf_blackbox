@@ -15,6 +15,7 @@ main(){
   local PGDATABASE="${PGDATABASE:-postgres}"
   local PGUSER="${PGUSER:-admin}"
   local PGPASSWORD="${PGPASSWORD:-admin123456}"
+  local pg_args="-tg"
 
   case "$action" in
 
@@ -44,18 +45,34 @@ main(){
       ;;
 
     clean-db)
-      echo "Cleaning up ..."
+      echo "Cleaning up $DOCKER ..."
       docker stop ${DOCKER} 2>/dev/null
       docker volume rm "${DOCKER}"-data 2>/dev/null
       ;;
 
-    pg_settings)
-      echo "SELECT name, setting, boot_val, reset_val, unit FROM pg_settings ORDER by name;" \
-          | PGPORT=${PGPORT} PGHOST=${PGHOST} PGDATABASE=${PGDATABASE} PGUSER=${PGUSER} PGPASSWORD=${PGPASSWORD} psql -v ON_ERROR_STOP=1 -tAe;
+    adminer)
+        docker run -it -d \
+            --label "$DOCKER-adminer" \
+            --name "$DOCKER-adminer" \
+            --rm \
+            -e LANG=en_US.UTF-8 \
+            -p "8888:8080" \
+          adminer
+        echo "http://$(hostname -I | cut -d' ' -f1):8888"
+      ;;
+
+    pg_stat_activity)
+      echo "SELECT * FROM pg_stat_activity ORDER BY pid;" \
+          | PGPORT=${PGPORT} PGHOST=${PGHOST} PGDATABASE=${PGDATABASE} PGUSER=${PGUSER} PGPASSWORD=${PGPASSWORD} psql -v ON_ERROR_STOP=1 ${pg_args};
         ;;
 
-    pg_shell)
-      PGPORT=${PGPORT} PGHOST=${PGHOST} PGDATABASE=${PGDATABASE} PGUSER=${PGUSER} PGPASSWORD=${PGPASSWORD} psql
+    pg_settings)
+      echo "SELECT name, setting, boot_val, reset_val, unit FROM pg_settings ORDER by name;" \
+          | PGPORT=${PGPORT} PGHOST=${PGHOST} PGDATABASE=${PGDATABASE} PGUSER=${PGUSER} PGPASSWORD=${PGPASSWORD} psql -v ON_ERROR_STOP=1 ${pg_args};
+        ;;
+
+    psql|pg_dump|pg_dumpall)
+      PGPORT=${PGPORT} PGHOST=${PGHOST} PGDATABASE=${PGDATABASE} PGUSER=${PGUSER} PGPASSWORD=${PGPASSWORD} ${action}
       ;;
 
     docker_shell)
@@ -63,8 +80,9 @@ main(){
         docker exec -it ${DOCKER} bash
       fi
       ;;
+
     *)
-      echo "Usage $(basename $0): <create-db|pg_settings|pg_shell|docker_shell|clean-db>"
+      echo "Usage $(basename $0): <create-db|clean-db|adminer|pg_stat_activity|pg_settings|psql|pg_dump|pg_dumpall>"
       ;;
 
   esac
