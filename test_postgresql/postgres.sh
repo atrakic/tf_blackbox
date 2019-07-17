@@ -75,6 +75,11 @@ main(){
       PGPORT=${PGPORT} PGHOST=${PGHOST} PGDATABASE=${PGDATABASE} PGUSER=${PGUSER} PGPASSWORD=${PGPASSWORD} ${action}
       ;;
 
+    pgexercises)
+      curl -s https://pgexercises.com/dbfiles/clubdata.sql \
+        | PGPORT=${PGPORT} PGHOST=${PGHOST} PGDATABASE=${PGDATABASE} PGUSER=${PGUSER} PGPASSWORD=${PGPASSWORD} psql -f -
+      ;;
+
     docker_shell)
       if [ "$(docker inspect --format='{{.State.Running}}' $DOCKER)" ];then
         docker exec -it ${DOCKER} bash

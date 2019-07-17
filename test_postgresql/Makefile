@@ -22,8 +22,5 @@ validate:
 	@terraform $@ -check-variables=false . && echo "[OK] terraform validated"
 
 ## https://hub.docker.com/_/postgres
-create-db clean-db adminer pg_stat_activity pg_settings psql pg_dump pg_dumpall:
-	@./postgres.sh $@
-
-pg_stat_activity pg_shell docker_shell pg_settings: create-db
+create-db clean-db adminer pgexercises pg_stat_activity pg_settings psql pg_dump pg_dumpall: create-db
 	@./postgres.sh $@
