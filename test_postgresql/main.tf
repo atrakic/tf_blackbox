@@ -12,7 +12,8 @@ provider "postgresql" {
   password        = "${local.docker_pg_password}"
   sslmode         = "${local.docker_pg_ssl_mode}"
   connect_timeout = "${local.docker_pg_connect_timeout}"
-  #alias           = "dockerdb"
+
+  #alias          = "dockerdb"
 }
 
 locals {
@@ -47,30 +48,49 @@ resource "random_id" "pg_password" {
 }
 
 ###
-
 locals {
-  db_name   = "my_db"
-  db_schema = "my_schema"
+  guestdb-commons {
+    db     = "guest"
+    role   = "guest"
+    schema = "guest"
+    pass   = "guest"
+  }
 }
 
-resource "postgresql_schema" "my_schema1" {
-  name = "${local.db_schema}"
+resource "postgresql_schema" "guest" {
+  name = "${local.guestdb-commons["schema"]}"
+
+  #provider = "postgresql.${local.guestdb-commons["db"]}"
 }
 
-resource "postgresql_role" "role_with_create_database" {
-  name = "role_with_create_database"
+resource "postgresql_role" "guest" {
+  name            = "${local.guestdb-commons["role"]}"
   create_database = true
+  login           = true
+  password        = "${local.guestdb-commons["pass"]}"
 }
 
-resource "postgresql_database" "db1" {
-  name              = "${local.db_name}"
-  owner             = "${postgresql_role.role_with_create_database.name}"
+resource "postgresql_database" "guest" {
+  name              = "${local.guestdb-commons["db"]}"
+  owner             = "${postgresql_role.guest.name}"
   template          = "template0"
   lc_collate        = "C"
   connection_limit  = -1
   allow_connections = true
 }
 
+provider "postgresql" {
+  host            = "${local.docker_pg_host}"
+  port            = "${local.docker_pg_port}"
+  database        = "${postgresql_database.guest.name}"
+  username        = "${postgresql_role.guest.name}"
+  password        = "${postgresql_role.guest.password}"
+  sslmode         = "${local.docker_pg_ssl_mode}"
+  connect_timeout = "${local.docker_pg_connect_timeout}"
+  alias           = "${local.guestdb-commons["db"]}"
+}
+
+####
 
 resource "postgresql_role" "role" {
   count                     = "${local.role_count}"
@@ -92,7 +112,7 @@ resource "postgresql_role" "role" {
 
 resource "postgresql_grant" "ro" {
   count       = "${length(null_resource.let.*.triggers.db_readers)}"
-  database    = "${local.docker_pg_database}"
+  database    = "${local.guestdb-commons["db"]}"
   role        = "${element(null_resource.let.*.triggers.db_readers, count.index)}"
   schema      = "public"
   object_type = "table"
@@ -101,9 +121,15 @@ resource "postgresql_grant" "ro" {
   depends_on = ["postgresql_role.role"]
 }
 
+output "superuser_login" {
+  value = "${format("PGPORT=%s PGHOST=%s PGDATABASE=%s PGUSER=%s PGPASSWORD=%s psql",
+          local.docker_pg_port, local.docker_pg_host, local.docker_pg_database, local.docker_pg_username, local.docker_pg_password)}"
+}
+
 output "db_logins" {
   value = "${zipmap(
     postgresql_role.role.*.id,
-    formatlist("PGPORT=%s PGHOST=%s PGDATABASE=%s PGUSER=%s PGPASSWORD=%s psql", local.docker_pg_port, local.docker_pg_host, local.docker_pg_database, postgresql_role.role.*.id, postgresql_role.role.*.password)
+    formatlist("PGPORT=%s PGHOST=%s PGDATABASE=%s PGUSER=%s PGPASSWORD=%s psql",
+              local.docker_pg_port, local.docker_pg_host, local.guestdb-commons["db"], postgresql_role.role.*.id, postgresql_role.role.*.password)
   )}"
 }
