@@ -17,10 +17,9 @@ get fmt version:
 validate:
 	@terraform $@ -check-variables=false . && echo "[OK] terraform validated"
 
-# https://hub.docker.com/_/postgres
-
-create-db: ## Create db with Docker
+## https://hub.docker.com/_/postgres
+create-db clean-db:
 	@./postgres.sh $@
 
-clean-db: ## Create db with Docker
+pg_shell docker_shell pg_settings: create-db
 	@./postgres.sh $@

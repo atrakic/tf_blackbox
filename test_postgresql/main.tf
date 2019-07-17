@@ -1,6 +1,18 @@
 terraform {
   required_version = ">= 0.11.11"
+
   #backend "local" {}
+}
+
+provider "postgresql" {
+  host            = "${local.docker_pg_host}"
+  port            = "${local.docker_pg_port}"
+  database        = "${local.docker_pg_database}"
+  username        = "${local.docker_pg_username}"
+  password        = "${local.docker_pg_password}"
+  sslmode         = "${local.docker_pg_ssl_mode}"
+  connect_timeout = "${local.docker_pg_connect_timeout}"
+  #alias           = "dockerdb"
 }
 
 locals {
@@ -14,8 +26,8 @@ locals {
 }
 
 locals {
-  apps      = ["gis", "kld", "med", "sbh", "tbb"]
-  app_roles = ["admin", "ro", "rw"]
+  apps       = ["gis", "kld", "med", "sbh", "tbb"]
+  app_roles  = ["admin", "ro", "rw"]
   role_count = "${length(local.apps) * length(local.app_roles)}"
 }
 
@@ -23,9 +35,9 @@ resource "null_resource" "let" {
   count = "${length(local.apps)}"
 
   triggers {
-    db_admins   = "${format("%s_%s", element(local.apps, count.index), element(local.apps, 0) )}"
-    db_readers  = "${format("%s_%s", element(local.apps, count.index), element(local.apps, 1) )}"
-    db_writters = "${format("%s_%s", element(local.apps, count.index), element(local.apps, 2) )}"
+    db_admins   = "${format("%s_%s", element(local.apps, count.index), element(local.app_roles, 0) )}"
+    db_readers  = "${format("%s_%s", element(local.apps, count.index), element(local.app_roles, 1) )}"
+    db_writters = "${format("%s_%s", element(local.apps, count.index), element(local.app_roles, 2) )}"
   }
 }
 
@@ -34,14 +46,29 @@ resource "random_id" "pg_password" {
   byte_length = 10
 }
 
-provider "postgresql" {
-  host            = "${local.docker_pg_host}"
-  port            = "${local.docker_pg_port}"
-  database        = "${local.docker_pg_database}"
-  username        = "${local.docker_pg_username}"
-  password        = "${local.docker_pg_password}"
-  sslmode         = "${local.docker_pg_ssl_mode}"
-  connect_timeout = "${local.docker_pg_connect_timeout}"
+###
+
+locals {
+  db_name   = "my_db"
+  db_schema = "my_schema"
+}
+
+resource "postgresql_schema" "my_schema1" {
+  name = "${local.db_schema}"
+}
+
+resource "postgresql_role" "role_with_create_database" {
+  name = "role_with_create_database"
+  create_database = true
+}
+
+resource "postgresql_database" "db1" {
+  name              = "${local.db_name}"
+  owner             = "${postgresql_role.role_with_create_database.name}"
+  template          = "template0"
+  lc_collate        = "C"
+  connection_limit  = -1
+  allow_connections = true
 }
 
 
@@ -71,5 +98,12 @@ resource "postgresql_grant" "ro" {
   object_type = "table"
   privileges  = ["SELECT"]
 
-  depends_on = [ "postgresql_role.role" ]
+  depends_on = ["postgresql_role.role"]
+}
+
+output "db_logins" {
+  value = "${zipmap(
+    postgresql_role.role.*.id,
+    formatlist("PGPORT=%s PGHOST=%s PGDATABASE=%s PGUSER=%s PGPASSWORD=%s psql", local.docker_pg_port, local.docker_pg_host, local.docker_pg_database, postgresql_role.role.*.id, postgresql_role.role.*.password)
+  )}"
 }
