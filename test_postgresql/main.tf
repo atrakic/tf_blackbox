@@ -123,13 +123,12 @@ resource "postgresql_grant" "ro" {
 
 output "superuser_login" {
   value = "${format("PGPORT=%s PGHOST=%s PGDATABASE=%s PGUSER=%s PGPASSWORD=%s psql",
-          local.docker_pg_port, local.docker_pg_host, local.docker_pg_database, local.docker_pg_username, local.docker_pg_password)}"
+              local.docker_pg_port, local.docker_pg_host, local.docker_pg_database, local.docker_pg_username, local.docker_pg_password)}"
 }
 
 output "db_logins" {
-  value = "${zipmap(
-    postgresql_role.role.*.id,
-    formatlist("PGPORT=%s PGHOST=%s PGDATABASE=%s PGUSER=%s PGPASSWORD=%s psql",
+  value = "${zipmap(postgresql_role.role.*.id,
+              formatlist("PGPORT=%s PGHOST=%s PGDATABASE=%s PGUSER=%s PGPASSWORD=%s psql",
               local.docker_pg_port, local.docker_pg_host, local.guestdb-commons["db"], postgresql_role.role.*.id, postgresql_role.role.*.password)
   )}"
 }
